@@ -1,0 +1,72 @@
+---
+title: "ice_LTER"
+author: "Shale"
+date: "8/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(ggbeeswarm)
+library(lubridate)
+library(ggrepel)
+```
+
+## Read in data
+
+```{r}
+ice_duration = read.csv(here("data", "ntl33_v7.csv"), na.strings = "-999")
+weather = read_csv(here("data", "ntl20_v6.csv"))
+```
+
+```{r}
+ggplot(data = ice_duration, aes(x= lakeid, y= ice_duration)) +
+  geom_beeswarm()+
+  geom_violin(fill = "springgreen1", alpha = 0.3) +
+  labs(y= "Duration of Ice (days/year)")
+```
+```{r}
+ice_means = ice_duration %>% 
+  group_by(season) %>% 
+  summarise(mean_ice_days = mean(ice_duration, na.rm = TRUE)) %>% 
+  separate(season, into = c("year1", "year4"), sep = "-")
+
+ggplot(data = ice_means, aes(y= mean_ice_days, x= year4)) +
+  geom_point()
+```
+Overall, the number of days of ice coverage is decreasing over time.
+
+```{r}
+air_temps = weather %>% 
+  filter(month %in% c(1, 2, 12)) %>% 
+  group_by(year4) %>% 
+  summarise(mean_air = mean(ave_air_temp_adjusted)) %>% 
+  mutate(year4 = as.character(year4))
+
+ggplot(data = air_temps, aes(x= year4, y= mean_air)) +
+  geom_point()
+```
+There is a slight upward trend to the data, indicating somewhat warmer average temperatures in winter (Dec-Feb) over the time period recorded.
+
+```{r}
+ice_summary = full_join(ice_means, air_temps, "year4")
+
+ggplot(data = ice_summary, aes(x= mean_air, y= mean_ice_days)) +
+  geom_point()
+```
+Graphing mean air temperature vs mean number of ice days per year shows a clear negative correlation. As mean air temperature increases, number of ice days decreases.
+
+```{r}
+thaw_day = ice_duration %>% 
+  mutate(ice_off = ymd(ice_off)) %>% 
+  filter(year4 >= 1970) %>% 
+  mutate(yday = yday(ice_off))
+
+ggplot(data = thaw_day, aes(x= year4, y= yday))+
+  geom_line(aes(color = lakeid), show.legend = FALSE)+
+  geom_text_repel(data = subset(thaw_day, year4 == 1970), aes(label = lakeid, color = lakeid), show.legend = FALSE)
+```
+Thaw day varies widely, but overall has decreased (i.e. now happens earlier in the year) over the past 50 years.
