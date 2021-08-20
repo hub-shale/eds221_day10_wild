@@ -1,0 +1,56 @@
+---
+title: "morning wrangling"
+author: "Shale"
+date: "8/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(palmerpenguins)
+library(testprojturtles)
+library(burritootter) # from install_github("joedecesaro/burritootter")
+library(kableExtra)
+```
+
+## Create and test a theme for ggplot
+
+To install from github:
+devtools::install_github("username/reponame")
+
+```{r}
+ggplot(data = penguins, aes(x= flipper_length_mm, y= body_mass_g)) +
+  geom_point() +
+  theme_grid7()
+```
+```{r}
+ggplot(data = penguins, aes(x= flipper_length_mm, y= body_mass_g)) +
+  geom_point() + theme_horrible_test()
+```
+
+## Tables in R
+with kable
+
+```{r}
+whale_set = tibble::tribble(
+        ~date,     ~site,       ~spp, ~dist_m, ~behavior,
+  "8/12/2014", "channel",  "unknown",    400L,  "breach",
+  "8/13/2014", "channel",     "gray",    200L,   "spout",
+  "8/15/2014",  "harbor",     "gray",     60L,   "spout",
+  "8/16/2014", "channel", "humpback",    300L, "feeding",
+  "8/16/2014", "channel",     "gray",    150L, "feeding"
+  )
+
+```
+
+```{r}
+whale_set %>% 
+  kable(col.names = c("Date", "Site", "Whale Species", "Distance (m)", "Behavior")) %>% 
+  kable_paper(full_width = FALSE, bootstrap_options = "striped")  %>% 
+  column_spec(1, background = "pink") %>% 
+  column_spec(4, color = "red")
+    
+```
+
+  
